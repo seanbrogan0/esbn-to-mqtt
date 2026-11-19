@@ -260,6 +260,36 @@ def test_import_reads_token_from_environment(
     assert fake.auth == {"type": "auth", "access_token": "from-env"}
 
 
+def test_token_lookup_falls_back_to_s6_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Any
+) -> None:
+    token_file = tmp_path / "SUPERVISOR_TOKEN"
+    token_file.write_text("from-s6\n", encoding="utf-8")
+    monkeypatch.setattr(statistics, "S6_TOKEN_FILE", token_file)
+
+    assert statistics.find_supervisor_token() == "from-s6"
+
+
+def test_token_lookup_falls_back_to_init_environment(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Any
+) -> None:
+    environ = tmp_path / "environ"
+    environ.write_bytes(b"PATH=/usr/bin\0SUPERVISOR_TOKEN=from-init\0HOME=/root\0")
+    monkeypatch.setattr(statistics, "INIT_ENVIRON_FILE", environ)
+
+    assert statistics.find_supervisor_token() == "from-init"
+
+
+def test_token_lookup_prefers_environment_then_returns_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert statistics.find_supervisor_token() is None
+
+    monkeypatch.setenv("SUPERVISOR_TOKEN", "from-env")
+
+    assert statistics.find_supervisor_token() == "from-env"
+
+
 def test_import_reports_rejected_token(run_server: Any) -> None:
     url = run_server(FakeHomeAssistant(auth_ok=False))
 

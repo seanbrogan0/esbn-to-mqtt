@@ -7,6 +7,7 @@ import os
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 
 from websockets.exceptions import WebSocketException
 from websockets.sync.client import connect
@@ -18,6 +19,10 @@ LOGGER = logging.getLogger(__name__)
 SUPERVISOR_WS_URL = "ws://supervisor/core/websocket"
 CHUNK_SIZE = 1000
 SOCKET_TIMEOUT_SECONDS = 30
+# s6-overlay keeps the container environment out of the service process, so the token
+# is also read from where s6 stores it, and from the init process as a last resort.
+S6_TOKEN_FILE = Path("/run/s6/container_environment/SUPERVISOR_TOKEN")
+INIT_ENVIRON_FILE = Path("/proc/1/environ")
 
 
 class StatisticsError(RuntimeError):
@@ -103,6 +108,29 @@ def _receive(socket: object) -> dict[str, object]:
     return message
 
 
+# Find the Supervisor token: normal environment first, then s6's stored copy, then the
+# environment of PID 1, which still holds what the Supervisor passed to the container.
+def find_supervisor_token() -> str | None:
+    token = os.environ.get("SUPERVISOR_TOKEN") or os.environ.get("HASSIO_TOKEN")
+    if token:
+        return token
+    try:
+        stored = S6_TOKEN_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        stored = ""
+    if stored:
+        return stored
+    try:
+        entries = INIT_ENVIRON_FILE.read_bytes().split(b"\0")
+    except OSError:
+        return None
+    for entry in entries:
+        name, _, value = entry.decode("utf-8", errors="replace").partition("=")
+        if name in {"SUPERVISOR_TOKEN", "HASSIO_TOKEN"} and value:
+            return value
+    return None
+
+
 # Push the hourly history to Home Assistant over the Supervisor websocket proxy.
 # Re-sending an hour replaces it, so repeated polls never duplicate data.
 def import_hourly_statistics(
@@ -114,7 +142,7 @@ def import_hourly_statistics(
 ) -> int:
     if not statistics:
         return 0
-    access_token = token or os.environ.get("SUPERVISOR_TOKEN")
+    access_token = token or find_supervisor_token()
     if not access_token:
         raise StatisticsError("SUPERVISOR_TOKEN is not set; homeassistant_api access is required")
 

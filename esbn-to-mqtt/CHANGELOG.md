@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.9
+
+- Fix hourly statistics import failing with "SUPERVISOR_TOKEN is not set": the token is now also read from s6's stored environment and from the init process environment.
+
 ## 0.4.8
 
 - Fork build: write ESBN half-hours into Home Assistant long-term statistics as hourly values (default statistic `esbn:grid_import`), so each day's usage lands in its real hours instead of one block when the poll runs.
