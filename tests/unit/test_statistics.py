@@ -194,7 +194,7 @@ def test_import_authenticates_and_sends_expected_payload(run_server: Any) -> Non
     assert message["metadata"] == {
         "has_sum": True,
         "mean_type": 0,
-        "name": None,
+        "name": "ESB Data",
         "source": "esbn",
         "statistic_id": "esbn:grid_import",
         "unit_class": "energy",
@@ -221,15 +221,16 @@ def test_import_splits_large_histories_into_chunks(
     assert fake.imports[2]["stats"][0]["sum"] == 2.5
 
 
-def test_import_uses_configured_statistic_id(run_server: Any) -> None:
+def test_import_uses_configured_statistic_id_and_name(run_server: Any) -> None:
     fake = FakeHomeAssistant()
     url = run_server(fake)
-    config = StatisticsConfig(statistic_id="home:meter_import")
+    config = StatisticsConfig(statistic_id="home:meter_import", name="Mains meter")
 
     import_hourly_statistics(_hours(1), config, url=url, token="abc")
 
     assert fake.imports[0]["metadata"]["source"] == "home"
     assert fake.imports[0]["metadata"]["statistic_id"] == "home:meter_import"
+    assert fake.imports[0]["metadata"]["name"] == "Mains meter"
 
 
 def test_import_ignores_unrelated_messages_while_waiting(run_server: Any) -> None:
@@ -336,15 +337,21 @@ def test_statistics_config_defaults_to_enabled_esbn_grid_import() -> None:
     assert config.statistics.enabled is True
     assert config.statistics.statistic_id == "esbn:grid_import"
     assert config.statistics.source == "esbn"
+    assert config.statistics.name == "ESB Data"
 
 
 def test_statistics_config_accepts_overrides() -> None:
-    options = _options() | {"statistics_enabled": False, "statistics_id": "home:meter_import"}
+    options = _options() | {
+        "statistics_enabled": False,
+        "statistics_id": "home:meter_import",
+        "statistics_name": "Mains meter",
+    }
 
     config = load_config_dict(options)
 
     assert config.statistics.enabled is False
     assert config.statistics.statistic_id == "home:meter_import"
+    assert config.statistics.name == "Mains meter"
 
 
 @pytest.mark.parametrize("bad_id", ["grid_import", "ESBN:grid", "esbn:grid import", "a:b:c"])

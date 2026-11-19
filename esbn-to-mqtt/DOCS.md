@@ -24,6 +24,7 @@ Configure these settings in the app:
 - `tariff_currency` - default `EUR`
 - `statistics_enabled` - default `true`; writes hourly history into Home Assistant long-term statistics
 - `statistics_id` - default `esbn:grid_import`; the external statistic to write
+- `statistics_name` - default `ESB Data`; the name shown for that statistic in Home Assistant charts and the Energy settings
 - `log_level` - default `info`; accepted values `trace`, `debug`, `info`, `notice`, `warning`, `error`, `fatal`
 
 ## Energy Dashboard Setup

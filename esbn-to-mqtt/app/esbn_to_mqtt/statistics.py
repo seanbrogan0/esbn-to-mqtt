@@ -83,7 +83,7 @@ def _import_message(
         "metadata": {
             "has_sum": True,
             "mean_type": 0,
-            "name": None,
+            "name": config.name,
             "source": config.source,
             "statistic_id": config.statistic_id,
             "unit_class": "energy",

@@ -41,6 +41,7 @@ class TariffConfig:
 class StatisticsConfig:
     enabled: bool = True
     statistic_id: str = "esbn:grid_import"
+    name: str = "ESB Data"
 
     @property
     def source(self) -> str:

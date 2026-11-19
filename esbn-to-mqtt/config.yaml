@@ -1,5 +1,5 @@
 name: esbn-to-mqtt
-version: "0.4.9"
+version: "0.4.10"
 slug: esbn_to_mqtt
 description: Publish ESB Networks smart meter HDF data to Home Assistant MQTT sensors
 url: https://github.com/seanbrogan0/esbn-to-mqtt/tree/main/esbn-to-mqtt
@@ -33,6 +33,7 @@ options:
   tariff_currency: EUR
   statistics_enabled: true
   statistics_id: esbn:grid_import
+  statistics_name: ESB Data
   log_level: info
 schema:
   esbn_username: email
@@ -55,4 +56,5 @@ schema:
   tariff_currency: match(^[A-Za-z]{3}$)
   statistics_enabled: bool
   statistics_id: match(^[a-z0-9_]+:[a-z0-9_]+$)
+  statistics_name: str
   log_level: list(trace|debug|info|notice|warning|error|fatal)

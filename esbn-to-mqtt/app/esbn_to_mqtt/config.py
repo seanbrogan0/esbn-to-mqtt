@@ -152,6 +152,7 @@ def _statistics_config(options: dict[str, Any]) -> StatisticsConfig:
     return StatisticsConfig(
         enabled=_optional_bool(options, "statistics_enabled", True),
         statistic_id=statistic_id,
+        name=_optional_str(options, "statistics_name") or "ESB Data",
     )
 
 
@@ -224,6 +225,7 @@ def load_env_config() -> AppConfig:
             "tariff_currency": os.environ.get("TARIFF_CURRENCY", "EUR"),
             "statistics_enabled": _env_bool("STATISTICS_ENABLED", "true"),
             "statistics_id": os.environ.get("STATISTICS_ID", "esbn:grid_import"),
+            "statistics_name": os.environ.get("STATISTICS_NAME", "ESB Data"),
             "log_level": os.environ.get("LOG_LEVEL", "info"),
         }
     )
