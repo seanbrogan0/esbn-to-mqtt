@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.10
+
+- Add `statistics_name` (default `ESB Data`) so the hourly statistic shows a readable name in charts and the Energy settings instead of its raw ID.
+
 ## 0.4.9
 
 - Fix hourly statistics import failing with "SUPERVISOR_TOKEN is not set": the token is now also read from s6's stored environment and from the init process environment.
